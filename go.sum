@@ -1,5 +1,3 @@
-github.com/ThreeDotsLabs/esja v0.0.0-20221217160007-5a7d57e70748 h1:EYvlqxHiz0ZLDj8nFP67NaDihFsn4pzPL+TKKzCOG0Q=
-github.com/ThreeDotsLabs/esja v0.0.0-20221217160007-5a7d57e70748/go.mod h1:XrgoWMjS8YBPqLjghKdgN2SGfH5FB1rbmbfukBc+miI=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

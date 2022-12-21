@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ThreeDotsLabs/esja/pii"
+	"github.com/ThreeDotsLabs/pii"
 )
 
 func TestMaskingAnonymizer(t *testing.T) {
