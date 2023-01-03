@@ -1,6 +1,7 @@
 package pii_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -18,6 +19,8 @@ type testStruct struct {
 }
 
 func TestStructAnonymizer(t *testing.T) {
+	ctx := context.Background()
+
 	a := pii.NewStructAnonymizer[string, testStruct](testStringAnonymizer{})
 
 	s := testStruct{
@@ -26,14 +29,14 @@ func TestStructAnonymizer(t *testing.T) {
 		Company:   "ThreeDotsLabs",
 	}
 
-	anonymized, err := a.Anonymize("id", s)
+	anonymized, err := a.Anonymize(ctx, "id", s)
 	require.NoError(t, err)
 
 	assert.Equal(t, "anonymized.id.John", anonymized.FirstName)
 	assert.Equal(t, "anonymized.id.Doe", anonymized.LastName)
 	assert.Equal(t, "ThreeDotsLabs", anonymized.Company)
 
-	deanonymized, err := a.Deanonymize("id", anonymized)
+	deanonymized, err := a.Deanonymize(ctx, "id", anonymized)
 	require.NoError(t, err)
 
 	assert.Equal(t, "John", deanonymized.FirstName)
@@ -43,11 +46,11 @@ func TestStructAnonymizer(t *testing.T) {
 
 type testStringAnonymizer struct{}
 
-func (t testStringAnonymizer) AnonymizeString(key string, value string) (string, error) {
+func (t testStringAnonymizer) AnonymizeString(_ context.Context, key string, value string) (string, error) {
 	return fmt.Sprintf("anonymized.%s.%s", key, value), nil
 }
 
-func (t testStringAnonymizer) DeanonymizeString(key string, value string) (string, error) {
+func (t testStringAnonymizer) DeanonymizeString(_ context.Context, key string, value string) (string, error) {
 	parts := strings.Split(value, ".")
 	if len(parts) != 3 {
 		return "", fmt.Errorf("invalid value")

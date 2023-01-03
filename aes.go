@@ -1,6 +1,7 @@
 package pii
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -11,7 +12,7 @@ import (
 )
 
 type SecretProvider[K any] interface {
-	SecretForKey(key K) ([]byte, error)
+	SecretForKey(ctx context.Context, key K) ([]byte, error)
 }
 
 type AESAnonymizer[K any] struct {
@@ -24,8 +25,8 @@ func NewAESAnonymizer[K any](secretProvider SecretProvider[K]) AESAnonymizer[K] 
 	}
 }
 
-func (a AESAnonymizer[K]) AnonymizeString(key K, value string) (string, error) {
-	secret, err := a.secretProvider.SecretForKey(key)
+func (a AESAnonymizer[K]) AnonymizeString(ctx context.Context, key K, value string) (string, error) {
+	secret, err := a.secretProvider.SecretForKey(ctx, key)
 	if err != nil {
 		return "", err
 	}
@@ -49,8 +50,8 @@ func (a AESAnonymizer[K]) AnonymizeString(key K, value string) (string, error) {
 	return fmt.Sprintf("%x", ciphertext), nil
 }
 
-func (a AESAnonymizer[K]) DeanonymizeString(key K, value string) (string, error) {
-	secret, err := a.secretProvider.SecretForKey(key)
+func (a AESAnonymizer[K]) DeanonymizeString(ctx context.Context, key K, value string) (string, error) {
+	secret, err := a.secretProvider.SecretForKey(ctx, key)
 	if err != nil {
 		return "", err
 	}

@@ -1,6 +1,7 @@
 package pii
 
 import (
+	"context"
 	"reflect"
 )
 
@@ -11,8 +12,8 @@ const (
 // StringAnonymizer anonymizes and deanonymizes strings.
 // K is the type of key used to anonymize the string.
 type StringAnonymizer[K any] interface {
-	AnonymizeString(key K, value string) (string, error)
-	DeanonymizeString(key K, value string) (string, error)
+	AnonymizeString(ctx context.Context, key K, value string) (string, error)
+	DeanonymizeString(ctx context.Context, key K, value string) (string, error)
 }
 
 // StructAnonymizer anonymizes and deanonymizes structs.
@@ -30,12 +31,12 @@ func NewStructAnonymizer[K any, T any](
 	}
 }
 
-func (a StructAnonymizer[K, T]) Anonymize(key K, data T) (T, error) {
+func (a StructAnonymizer[K, T]) Anonymize(ctx context.Context, key K, data T) (T, error) {
 	t := reflect.TypeOf(data)
 	cp := reflect.New(t).Elem()
 	cp.Set(reflect.ValueOf(data))
 
-	err := a.anonymize(key, cp)
+	err := a.anonymize(ctx, key, cp)
 	if err != nil {
 		var empty T
 		return empty, err
@@ -44,7 +45,7 @@ func (a StructAnonymizer[K, T]) Anonymize(key K, data T) (T, error) {
 	return cp.Interface().(T), nil
 }
 
-func (a StructAnonymizer[K, T]) anonymize(key K, v reflect.Value) error {
+func (a StructAnonymizer[K, T]) anonymize(ctx context.Context, key K, v reflect.Value) error {
 	tv := v
 	t := v.Type()
 	for tv.Kind() == reflect.Ptr {
@@ -59,14 +60,14 @@ func (a StructAnonymizer[K, T]) anonymize(key K, v reflect.Value) error {
 		if field.Kind() == reflect.String {
 			_, ok := fieldType.Tag.Lookup(anonymizeTag)
 			if ok {
-				anonymized, err := a.stringAnonymizer.AnonymizeString(key, field.String())
+				anonymized, err := a.stringAnonymizer.AnonymizeString(ctx, key, field.String())
 				if err != nil {
 					return err
 				}
 				field.SetString(anonymized)
 			}
 		} else if field.Kind() == reflect.Struct {
-			err := a.anonymize(key, field)
+			err := a.anonymize(ctx, key, field)
 			if err != nil {
 				return err
 			}
@@ -76,12 +77,12 @@ func (a StructAnonymizer[K, T]) anonymize(key K, v reflect.Value) error {
 	return nil
 }
 
-func (a StructAnonymizer[K, T]) Deanonymize(key K, data T) (T, error) {
+func (a StructAnonymizer[K, T]) Deanonymize(ctx context.Context, key K, data T) (T, error) {
 	t := reflect.TypeOf(data)
 	cp := reflect.New(t).Elem()
 	cp.Set(reflect.ValueOf(data))
 
-	err := a.deanonymize(key, cp)
+	err := a.deanonymize(ctx, key, cp)
 
 	if err != nil {
 		var empty T
@@ -91,7 +92,7 @@ func (a StructAnonymizer[K, T]) Deanonymize(key K, data T) (T, error) {
 	return cp.Interface().(T), nil
 }
 
-func (a StructAnonymizer[K, T]) deanonymize(key K, v reflect.Value) error {
+func (a StructAnonymizer[K, T]) deanonymize(ctx context.Context, key K, v reflect.Value) error {
 	tv := v
 	t := v.Type()
 	for tv.Kind() == reflect.Ptr {
@@ -106,14 +107,14 @@ func (a StructAnonymizer[K, T]) deanonymize(key K, v reflect.Value) error {
 		if field.Kind() == reflect.String {
 			_, ok := fieldType.Tag.Lookup(anonymizeTag)
 			if ok {
-				deanonymized, err := a.stringAnonymizer.DeanonymizeString(key, field.String())
+				deanonymized, err := a.stringAnonymizer.DeanonymizeString(ctx, key, field.String())
 				if err != nil {
 					return err
 				}
 				field.SetString(deanonymized)
 			}
 		} else if field.Kind() == reflect.Struct {
-			err := a.deanonymize(key, field)
+			err := a.deanonymize(ctx, key, field)
 			if err != nil {
 				return err
 			}
